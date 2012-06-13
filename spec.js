@@ -18,11 +18,13 @@ describe("require", function() {
 });
 
 describe("EventTarget", function() {
+    var events;
     var Event;
     var EventTarget;
     beforeEach(function() {
         Event = require("./event").Event;
         EventTarget = require("./eventtarget").EventTarget;
+        events = require("./events").events;
     });
     it("usecase: add dispatch remove", function() {
         var finished = false;
@@ -63,6 +65,16 @@ describe("EventTarget", function() {
         };
         target.addEventListener("SAY", listener1);
         target.dispatchEvent("SAY");
+        target.removeEventListener("SAY");
         expect(finished).toBeTruthy(finished);
+    });
+    it("cleanUp events", function() {
+        var target = new EventTarget();
+        var listener = function(e){}; 
+        target.addEventListener("SAY", listener);
+        events.removeAll_();
+        expect(events.listeners_).toEqual({});
+        target.addEventListener("SAY", listener);
+        events.removeBySrc_(target);
     });
 });

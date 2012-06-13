@@ -5,7 +5,7 @@ var Event = require("./event").Event;
 var uidCounter_ = 0;
 var UID_PROPERTY_ = 'uid_' + Math.floor(Math.random() * 2147483648).toString(36);
 function getUid(obj) {
-    return obj[UID_PROPERTY] || (obj[UID_PROPERTY] = ++uidCounter_);
+    return obj[UID_PROPERTY_] || (obj[UID_PROPERTY_] = ++uidCounter_);
 };
 
 var events = {};
@@ -33,6 +33,8 @@ events.listen = function(src, type, listener) {
     /** @type {Listener} */
     var listenerObj = new EventListener();
     listenerObj.init(listener, src, type);
+
+    var srcUid = getUid(src);
 
     var key = listenerObj.key;
 
@@ -98,6 +100,66 @@ events.dispatchEvent = function(src, e) {
  */
 events.fireListener = function(listener, eventObject) {
     return listener.handleEvent(eventObject);
+};
+
+
+/**
+ * @private
+ */
+events.removeBySrc_ = function(src) {
+    var map = events.listeners_;
+    var events_;
+    var type;
+    var key;
+    for(type in map) {
+        events_ = map[type];
+        for(key in events_) {
+            if(src === events_[key].src) {
+                delete events_[key];
+            }
+        }
+    }
+};
+
+
+/**
+ * @private
+ */
+events.removeAll_ = function() {
+    var map = events.listeners_;
+    var events_;
+    var type;
+    var key;
+    for(type in map) {
+        events_ = map[type];
+        for(key in events_) {
+            delete events_[key];
+        }
+    }
+    events.listeners_ = {};
+};
+
+
+/**
+ * @private
+ */
+events.cleanUp_ = function() {
+    var map = events.listeners_;
+    var events_;
+    var type;
+    var key;
+    for(type in map) {
+        events_ = map[type];
+        var i = events_.length;
+        while(i--) {
+            if(events_[i] === undefined) {
+                events_.splice(i, 1);
+            }
+        }
+        if(events_.length === 0) {
+            delete map[type];
+        }
+    }
 };
 
 
